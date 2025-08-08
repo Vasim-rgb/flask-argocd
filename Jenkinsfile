@@ -1,29 +1,32 @@
 pipeline {
     agent any
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-username')
-        IMAGE_NAME = "vasimshaik/flask-argocd"
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-login') // Jenkins credential ID
+        IMAGE_NAME = "shaikvasim/flask-app"  // Replace with your exact repo name
+        IMAGE_TAG = "latest"                    // Or use a fixed tag
     }
     stages {
-        stage('Build Docker Image') {
+        stage('Docker Login & Pull Image') {
             steps {
-                script {
-                    sh "docker build -t ${IMAGE_NAME}:latest ."
-                }
+                bat """
+                    docker login -u %DOCKERHUB_CREDENTIALS_USR% -p %DOCKERHUB_CREDENTIALS_PSW%
+                    docker pull %IMAGE_NAME%:%IMAGE_TAG%
+                """
             }
         }
-        stage('Login to DockerHub') {
+        stage('Stop Old Container') {
             steps {
-                script {
-                    sh "echo ${DOCKERHUB_CREDENTIALS_PSW} | docker login -u ${DOCKERHUB_CREDENTIALS_USR} --password-stdin"
-                }
+                bat 'docker rm -f flask_app || exit 0'
             }
         }
-        stage('Push to DockerHub') {
+        stage('Run New Container') {
             steps {
-                script {
-                    sh "docker push ${IMAGE_NAME}:latest"
-                }
+                bat """
+                    docker run -d ^
+                    --name flask_app ^
+                    -p 5000:5000 ^
+                    %IMAGE_NAME%:%IMAGE_TAG%
+                """
             }
         }
     }
