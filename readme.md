@@ -1,2 +1,2 @@
 hi hello whatsapp
-dck duck goooooooooooooooooooooooooooooooooooooooooooooooo
+dck duck gooooooooooooooooooooooooooooo
